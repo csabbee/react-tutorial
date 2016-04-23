@@ -14,7 +14,8 @@ class CommentList extends React.Component {
     render() {
         return (
             <div className="commentList">
-                Hello world! I am a comment list.
+                <Comment author="Peter Hunt">This is one comment</Comment>
+                <Comment author="Jordan Walke">This is *another* comment</Comment>
             </div>
         );
     }
