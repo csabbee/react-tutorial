@@ -1,9 +1,14 @@
+var data = [
+  {id: 1, author: "Pete Hunt", text: "This is one comment"},
+  {id: 2, author: "Jordan Walke", text: "This is *another* comment"}
+];
+
 class CommentBox extends React.Component {
     render() {
         return (
             <div className="commentBox">
                 Hello world! I am a comment box.
-                <CommentList/>
+                <CommentList data={this.props.data}/>
                 <CommentForm/>
             </div>
         )
@@ -12,10 +17,17 @@ class CommentBox extends React.Component {
 
 class CommentList extends React.Component {
     render() {
+        var commentNodes = this.props.data.map(function(comment) {
+            return (
+                <Comment author={comment.author} key={comment.id}>
+                    {comment.text}
+                </Comment>
+
+            );
+        });
         return (
             <div className="commentList">
-                <Comment author="Peter Hunt">This is one comment</Comment>
-                <Comment author="Jordan Walke">This is *another* comment</Comment>
+                {commentNodes}
             </div>
         );
     }
@@ -50,6 +62,6 @@ class Comment extends React.Component {
 }
 
 ReactDOM.render(
-    <CommentBox/>,
+    <CommentBox data={data}/>,
     document.getElementById('content')
 );
