@@ -4,25 +4,52 @@ class CommentBox extends React.Component {
         this.state = {
             data: []
         };
+
+        this.declareMethods();
     }
 
-    loadCommentsFromServer() {
-        $.ajax({
-            url: this.props.url,
-            dataType: 'json',
-            cache: false,
-            success: function(data) {
-                this.setState({ data: data });
-            }.bind(this),
-            error: function(xhr, status, err) {
-                console.error(this.props.url, status, err.toString());
-            }.bind(this)
-        });
+    declareMethods() {
+        this.handleSuccess = (data) => {
+            this.setState({ data: data });
+        };
+
+        this.handleError = (xhr, status, err) => {
+            console.error(this.props.url, status, err.toString());
+        };
+
+        this.loadCommentsFromServer = () => {
+            $.ajax({
+                url: this.props.url,
+                dataType: 'json',
+                cache: false,
+                success: this.handleSuccess,
+                error: this.handleError
+            });
+        };
+
+        this.handleCommentSubmit = (comment) => {
+            var comments = this.state.data;
+            comment.id = Date.now();
+            var newComments = comments.concat([comment]);
+            this.setState({ data: newComments });
+            
+            $.ajax({
+                url: this.props.url,
+                dataType: 'json',
+                type: 'POST',
+                data: comment,
+                success: this.handleSuccess,
+                error: () => {
+                    this.handleError.apply(xhr, status, err);
+                    this.setState({ data: comments });
+                }
+            });
+        };
     }
 
     componentDidMount() {
         this.loadCommentsFromServer();
-        setInterval(this.loadCommentsFromServer.bind(this), this.props.pollInterval)
+        setInterval(this.loadCommentsFromServer, this.props.pollInterval)
     }
 
     render() {
@@ -30,7 +57,7 @@ class CommentBox extends React.Component {
             <div className="commentBox">
                 Hello world! I am a comment box.
                 <CommentList data={this.state.data}/>
-                <CommentForm/>
+                <CommentForm onCommentSubmit={this.handleCommentSubmit}/>
             </div>
         )
     }
@@ -76,11 +103,11 @@ class CommentForm extends React.Component {
 
         this.handleSubmit = (e) => {
             e.preventDefault();
-            var author = this.state.author.trim(),
-                text = this.state.text.trim();
+            var {author, text} = this.state;
             if (!author || !text) {
                 return;
             }
+            this.props.onCommentSubmit({ author: author.trim(), text: text.trim() });
             this.setState({ author: '', text: '' });
         }
     }
@@ -98,7 +125,7 @@ class CommentForm extends React.Component {
                     placeholder="Say Something"
                     value={this.state.text}
                     onChange={this.handleTextChange} />
-                <input type="submit"/>
+                <input type="submit" value="Post"/>
             </form>
         );
     }
